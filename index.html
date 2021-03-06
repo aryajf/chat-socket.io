@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket io Node JS</title>
+    <style media="screen">
+        form{
+            position: fixed;
+            left:0;
+            bottom: 0;
+            width:95%;
+            background-color: grey;
+            padding: 20px;
+        }
+        li{
+            padding: 5px;
+            list-style: none;
+            position: relative;
+            left: -20px;
+        }
+        #messages li:nth-child(odd){
+            background-color: #fff;
+            color: #333;
+        }
+        #messages li:nth-child(even){
+            background-color: #333;
+            color: #fff;
+        }
+        #nama_user{
+            float: left;
+            width: 20%;
+            height: 30px;
+            border: none;
+        }
+        #text-box{
+            float: left;
+            width: 40%;
+            height: 30px;
+            border: none;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        button{
+            float: left;
+            width: 20%;
+            height: 33px;
+        }
+        .hidden{display: none;}
+        #leftBox{
+            float:left;
+            width: 75%;
+        }
+        #rightBox{
+            float:left;
+            width: 25%;
+        }
+    </style>
+</head>
+<body>
+    <div id="homepage">
+        <h1>Selamat Datang !</h1>
+        <input id="nama_user" placeholder="Your Username" type="text">
+        <button id="submit_name">Masuk !</button>
+    </div>
+
+    <div id="chatroom" class="hidden">
+        <div id="leftBox">
+            <ul id="messages"></ul>
+        </div>
+        <div id="rightBox">
+            <h4>Active Users:</h4>
+            <ul id="user_list"></ul>
+        </div>
+        <form id="form">
+            <input id="text-box" placeholder="Place your message here" type="text">
+            <button>Kirim</button>
+        </form>
+    </div>
+            
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io()
+        const submit_name = document.getElementById('submit_name')
+        const form = document.getElementById('form')
+        const nama = document.getElementById('nama_user')
+        const text = document.getElementById('text-box')
+        const messages = document.getElementById('messages')
+        const byId = function( id ) { return document.getElementById( id ) }
+        const byClass = function( classes ) { return document.querySelectorAll( classes ) }
+        let username = ''
+        let isTyping = ''
+
+        //Ketika user daftar nama
+        submit_name.addEventListener('click', function() {
+
+            // Validasi usernya sudah ada atau belum
+            if(byId('nama_user').value != ''){
+                // Menguji nama exist atau belum
+                username = nama.value
+                socket.emit('registerUser', username)
+            }
+        })
+        
+        
+        // Terima respon dari server.js saat register
+        socket.on('registerRespond', function(status){
+            if(status == false){
+                alert('User sudah ada, cari nama lain')
+            }else{
+                byId('chatroom').classList.remove("hidden")
+                byId('homepage').classList.add("hidden")
+            }
+        })
+
+        // Terima respon dari server.js saat User Online
+        socket.on('addOnlineUsers', function(usernames){
+            byId('user_list').innerHTML = ''
+
+            for (let i = 0; i < usernames.length; i++) {
+                let item = document.createElement('li')
+                item.setAttribute("id", `user_${usernames[i]}`)
+                item.innerText = usernames[i]
+                byId('user_list').appendChild(item)
+            }
+        })
+
+        // Kirim Chat
+        form.addEventListener('submit', function(e) {
+            e.preventDefault()
+            if(text.value){
+                username = nama.value
+                // Emit/Kirim ke io di server.js
+                socket.emit('newMessage', `${username}: ${text.value}`)
+                text.value = ''
+                isTyping = false
+                // document.classList.remove('temporary');
+            }
+        })
+        
+        // Terima hasil chat dari server.js
+        socket.on('newMessage', function(msg){
+            let item = document.createElement('li')
+            item.innerHTML = `${msg} <br> <small>${Date()}</small>`
+            messages.appendChild(item)
+            window.scrollTo(0, document.body.scrollHeight)
+        })
+
+        // Ketika user mengetik
+        byId('text-box').addEventListener('keyup', function() {
+            if(isTyping == false){
+                socket.emit('newTyping', `${username} sedang megetik..`)
+            }
+            
+            isTyping = true
+        })
+
+        // Terima pesan sedang mengetik
+        socket.on('newTyping', function(msg){
+            let item = document.createElement('li')
+            item.setAttribute("class", 'temporary')
+            item.innerText = msg
+            messages.appendChild(item)
+        })
+    </script>
+</body>
+</html>
