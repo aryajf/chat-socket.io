@@ -4,14 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socket io Node JS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v3.0.6/css/line.css">
     <style media="screen">
-        form{
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
+        html, body{
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        /* Works on Firefox */
+        * {
+        scrollbar-width: thin;
+        scrollbar-color: #333 #ccc;
+        }
+
+        /* Works on Chrome, Edge, and Safari */
+        *::-webkit-scrollbar {
+        width: 12px;
+        }
+
+        *::-webkit-scrollbar-track {
+        background: #ccc;
+        }
+
+        *::-webkit-scrollbar-thumb {
+        background-color: #333;
+        border-radius: 20px;
+        border: 3px solid #ccc;
+        }
+
+        form#form{
             position: fixed;
             left:0;
             bottom: 0;
-            width:95%;
-            background-color: grey;
-            padding: 20px;
+            background-color: #43A047;
         }
         li{
             padding: 5px;
@@ -27,57 +54,74 @@
             background-color: #333;
             color: #fff;
         }
-        #nama_user{
-            float: left;
-            width: 20%;
-            height: 30px;
-            border: none;
-        }
-        #text-box{
-            float: left;
-            width: 40%;
-            height: 30px;
-            border: none;
-            margin-left: 10px;
-            margin-right: 10px;
-        }
-        button{
-            float: left;
-            width: 20%;
-            height: 33px;
-        }
         .hidden{display: none;}
-        #leftBox{
-            float:left;
-            width: 75%;
-        }
-        #rightBox{
-            float:left;
-            width: 25%;
-        }
     </style>
 </head>
 <body>
-    <div id="homepage">
-        <h1>Selamat Datang !</h1>
-        <input id="nama_user" placeholder="Your Username" type="text">
-        <button id="submit_name">Masuk !</button>
+    <nav class="navbar navbar-light bg-light">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">
+            <i class="uil uil-comment-alt-lines"></i> Aplikasi Chat Online Lite!
+          </a>
+        </div>
+      </nav>
+    <div class="container" id="homepage">
+        <div class="row">
+            <div class="col">
+                <div class="mt-5 card text-center">
+                    <div class="card-header">
+                        <h3 class="my-3">Selamat Datang Di Chat Online Lite !</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="submit_name">
+                            <div class="row">
+                                <div class="col-8">
+                                    <label for="nama_user" class="form-label"><i class="uil uil-user"></i> Username</label>
+                                    <input id="nama_user" class="form-control" placeholder="Your Username" type="text" required>
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="w-100 py-4 btn btn-success"><i class="uil uil-telegram-alt"></i> Menuju ke TKP!</button>
+                                </div>
+                            </div>
+                              
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="chatroom" class="hidden">
-        <div id="leftBox">
-            <ul id="messages"></ul>
+        <div class="container-fluid">
+            <div class="row">
+            <div class="col-md-9">
+                <div id="message-container">
+                    <ul id="messages"></ul>
+                </div>
+            </div>
+            <div class="col">
+                <div class="mt-5 card">
+                    <div class="card-header">
+                        <h4>Active Users:</h4>
+                    </div>
+                    <ul id="user_list"></ul>
+                  </div>
+                </div>
+            </div>
         </div>
-        <div id="rightBox">
-            <h4>Active Users:</h4>
-            <ul id="user_list"></ul>
-        </div>
-        <form id="form">
-            <input id="text-box" placeholder="Place your message here" type="text">
-            <button>Kirim</button>
+        <form class="container-fluid py-3" id="form">
+            <div class="row">
+                <div class="col-10">
+                    <input class="form-control" id="text-box" placeholder="Place your message here" type="text">
+                </div>
+                <div class="w-100 col">
+                    <button class="w-100 btn btn-primary"><i class="uil uil-message"></i> Kirim</button>
+                </div>
+            </div>
         </form>
     </div>
-            
+    
+    <script src="https://momentjs.com/downloads/moment-with-locales.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io()
@@ -89,11 +133,10 @@
         const byId = function( id ) { return document.getElementById( id ) }
         const byClass = function( classes ) { return document.querySelectorAll( classes ) }
         let username = ''
-        let isTyping = ''
 
         //Ketika user daftar nama
-        submit_name.addEventListener('click', function() {
-
+        submit_name.addEventListener('submit', function(e) {
+            e.preventDefault()
             // Validasi usernya sudah ada atau belum
             if(byId('nama_user').value != ''){
                 // Menguji nama exist atau belum
@@ -120,7 +163,7 @@
             for (let i = 0; i < usernames.length; i++) {
                 let item = document.createElement('li')
                 item.setAttribute("id", `user_${usernames[i]}`)
-                item.innerText = usernames[i]
+                item.innerHTML = "<i class='uil uil-user'></i> "+usernames[i]
                 byId('user_list').appendChild(item)
             }
         })
@@ -134,20 +177,25 @@
                 socket.emit('newMessage', `${username}: ${text.value}`)
                 text.value = ''
                 isTyping = false
-                // document.classList.remove('temporary');
             }
         })
         
         // Terima hasil chat dari server.js
         socket.on('newMessage', function(msg){
             let item = document.createElement('li')
-            item.innerHTML = `${msg} <br> <small>${Date()}</small>`
+            item.innerHTML = `${msg} <br> <small>${moment(Date()).lang("id").format('Do MMMM YYYY, h:mm:ss')}</small>`
             messages.appendChild(item)
             window.scrollTo(0, document.body.scrollHeight)
+            var elems = document.querySelectorAll(".temporary");
+
+            [].forEach.call(elems, function(el) {
+                el.remove();
+            });
         })
 
         // Ketika user mengetik
-        byId('text-box').addEventListener('keyup', function() {
+        let isTyping = false
+        byId('text-box').addEventListener('keyup', function(e) {
             if(isTyping == false){
                 socket.emit('newTyping', `${username} sedang megetik..`)
             }
@@ -163,5 +211,6 @@
             messages.appendChild(item)
         })
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
 </body>
 </html>
