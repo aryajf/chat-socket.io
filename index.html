@@ -96,7 +96,7 @@
             <div class="row">
             <div class="col-md-9">
                 <div id="message-container">
-                    <ul id="messages"></ul>
+                    <ul style="height: 80vh;overflow-y: scroll;" id="messages"></ul>
                 </div>
             </div>
             <div class="col">
@@ -195,7 +195,8 @@
 
         // Ketika user mengetik
         let isTyping = false
-        byId('text-box').addEventListener('keyup', function(e) {
+        byId('text-box').addEventListener('keypress', function(e) {
+            
             if(isTyping == false){
                 socket.emit('newTyping', `${username} sedang megetik..`)
             }
